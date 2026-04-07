@@ -91,6 +91,45 @@ async def api_predict_aqi(req: AQIRequest):
     prediction = predict_aqi(req.zone, req.minutes_ahead)
     return {"success": True, **prediction}
 
+@app.get("/api/heatmap")
+async def api_heatmap():
+    """Returns pollution heatmap data across major Indian locations."""
+    import random
+    from services.prediction import get_base_aqi_by_coords
+    
+    # Generate points around some major coordinates
+    base_points = [
+        {"lat": 28.6139, "lng": 77.2090, "city": "Delhi"},
+        {"lat": 19.0760, "lng": 72.8777, "city": "Mumbai"},
+        {"lat": 12.9716, "lng": 77.5946, "city": "Bangalore"},
+        {"lat": 13.0827, "lng": 80.2707, "city": "Chennai"},
+        {"lat": 22.5726, "lng": 88.3639, "city": "Kolkata"},
+        {"lat": 17.3850, "lng": 78.4867, "city": "Hyderabad"},
+        {"lat": 23.0225, "lng": 72.5714, "city": "Ahmedabad"},
+        {"lat": 21.1458, "lng": 79.0882, "city": "Nagpur"},
+        {"lat": 26.8467, "lng": 80.9462, "city": "Lucknow"},
+    ]
+    
+    heatmap_data = []
+    
+    for bp in base_points:
+        base_aqi = get_base_aqi_by_coords(bp["lat"], bp["lng"])
+        # Add primary point
+        # Intensity scaling: AQI 0-500 -> 0.0-1.0
+        intensity = min(1.0, max(0.1, base_aqi / 300.0))
+        heatmap_data.append([bp["lat"], bp["lng"], intensity])
+        
+        # Add surrounding variance
+        num_spread = random.randint(5, 15)
+        for _ in range(num_spread):
+            lat_var = bp["lat"] + random.uniform(-0.5, 0.5)
+            lng_var = bp["lng"] + random.uniform(-0.5, 0.5)
+            # Vary AQI slightly for spread
+            var_aqi = max(10, base_aqi + random.uniform(-40, 40))
+            heatmap_data.append([lat_var, lng_var, min(1.0, max(0.1, var_aqi / 300.0))])
+            
+    return {"success": True, "data": heatmap_data}
+
 @app.get("/aqi-data")
 async def get_aqi_data():
     """Return AQI data for all zones."""

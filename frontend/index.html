@@ -160,6 +160,11 @@
     <section class="map-area" id="map-area">
       <div id="map"></div>
 
+      <!-- Map Controls -->
+      <div class="map-controls">
+        <button id="heatmap-toggle" class="control-btn glass">Heatmap: OFF</button>
+      </div>
+
       <!-- Legend -->
       <div class="map-legend" id="map-legend">
         <div class="map-legend-title">Route Legend</div>
@@ -213,6 +218,7 @@
 
   <!-- Libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
   <!-- App Modules -->

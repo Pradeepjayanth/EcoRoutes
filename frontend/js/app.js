@@ -24,8 +24,29 @@ const App = {
     this.bindEvents();
     this.startClock();
     
+    // Start heatmap
+    this.startHeatmapUpdates();
+
     console.log('✅ Application ready');
     Utils.showToast('Search any location in India to get started!', 'success');
+  },
+
+  async startHeatmapUpdates() {
+    const fetchHeatmap = async () => {
+      try {
+        const res = await Utils.get('/api/heatmap');
+        if (res.success && res.data) {
+          MapModule.updateHeatmap(res.data);
+        }
+      } catch (e) {
+        console.error('Heatmap fetch failed:', e);
+      }
+    };
+
+    // Initial fetch
+    await fetchHeatmap();
+    // Update every 30 seconds
+    setInterval(fetchHeatmap, 30000);
   },
 
   bindEvents() {
@@ -103,6 +124,13 @@ const App = {
       document.getElementById('t-predicted').classList.add('active');
       document.getElementById('t-current').classList.remove('active');
       Dashboard.togglePrediction(true);
+    });
+
+    // Heatmap toggle
+    document.getElementById('heatmap-toggle').addEventListener('click', (e) => {
+      const isVisible = MapModule.toggleHeatmap();
+      e.target.textContent = `Heatmap: ${isVisible ? 'ON' : 'OFF'}`;
+      e.target.classList.toggle('active', isVisible);
     });
 
     // Enter key

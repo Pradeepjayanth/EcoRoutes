@@ -9,6 +9,8 @@ const MapModule = {
   routeLayers: [],
   locationMarkers: {},
   animFrame: null,
+  heatLayer: null,
+  isHeatmapVisible: false,
 
   init() {
     this.map = L.map('map', {
@@ -26,6 +28,39 @@ const MapModule = {
     }).addTo(this.map);
 
     this.map.zoomControl.setPosition('bottomright');
+  },
+
+  updateHeatmap(heatData) {
+    if (this.heatLayer) {
+      this.map.removeLayer(this.heatLayer);
+    }
+    
+    // Gradient: Green -> Yellow -> Red
+    this.heatLayer = L.heatLayer(heatData, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 10,
+      max: 1.0,
+      gradient: {
+        0.3: '#00e88f', // Low - Green
+        0.6: '#ff9f43', // Medium - Orange/Yellow
+        1.0: '#ff4757'  // High - Red
+      }
+    });
+
+    if (this.isHeatmapVisible) {
+      this.heatLayer.addTo(this.map);
+    }
+  },
+
+  toggleHeatmap() {
+    this.isHeatmapVisible = !this.isHeatmapVisible;
+    if (this.isHeatmapVisible && this.heatLayer) {
+      this.heatLayer.addTo(this.map);
+    } else if (this.heatLayer) {
+      this.map.removeLayer(this.heatLayer);
+    }
+    return this.isHeatmapVisible;
   },
 
   createIcon(color, label, size = 36) {

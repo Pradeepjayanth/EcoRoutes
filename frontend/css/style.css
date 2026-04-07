@@ -648,6 +648,38 @@ body {
 .legend-line { width: 22px; height: 3px; border-radius: 2px; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 
+/* ====== MAP CONTROLS ====== */
+.map-controls {
+  position: absolute;
+  bottom: 24px; left: 24px;
+  z-index: 500;
+  display: flex; gap: 10px;
+}
+.control-btn {
+  padding: 10px 16px;
+  background: rgba(12,18,32,0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem; font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+.control-btn:hover {
+  background: rgba(20,32,56,0.9);
+  border-color: var(--accent-green);
+  box-shadow: 0 0 15px rgba(0,232,143,0.15);
+}
+.control-btn.active {
+  background: rgba(0,232,143,0.15);
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+  box-shadow: 0 0 20px rgba(0,232,143,0.25);
+}
+
 /* ====== DASHBOARD OVERLAY ====== */
 .dashboard-panel {
   position: absolute;
