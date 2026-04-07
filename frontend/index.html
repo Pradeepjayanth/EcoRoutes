@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EcoRoute AI — A premium AI-powered predictive eco smart routing system. Navigate smarter, breathe cleaner.">
+  <title>EcoRoute AI — Predictive Eco Smart Routing</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ====== AMBIENT BACKGROUND ====== -->
+  <div class="ambient-bg">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- ====== NAVBAR ====== -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-brand">
+      <div class="navbar-logo">🌿</div>
+      <div>
+        <div class="navbar-title">EcoRoute AI</div>
+        <div class="navbar-tagline">Predictive Eco Smart Routing</div>
+      </div>
+    </div>
+    <div class="navbar-status">
+      <div class="status-pill" id="status-pill">
+        <span class="status-dot"></span>
+        <span id="status-text">System Ready</span>
+      </div>
+      <span class="navbar-clock" id="nav-clock"></span>
+    </div>
+  </nav>
+
+  <!-- ====== APP LAYOUT ====== -->
+  <main class="app-layout">
+
+    <!-- ====== LEFT SIDEBAR ====== -->
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Route Planner -->
+      <div class="glass-card anim-left" id="card-planner">
+        <div class="card-header">
+          <div class="card-icon eco">📍</div>
+          <div>
+            <div class="card-title">Route Planner</div>
+            <div class="card-subtitle">Select origin & destination</div>
+          </div>
+        </div>
+        <div class="form-group search-container">
+          <label class="form-label" for="source-input">Source Location</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🟢</span>
+            <input type="text" class="form-input" id="source-input" placeholder="Enter city or area..." autocomplete="off">
+          </div>
+          <div id="source-suggestions" class="suggestions-dropdown"></div>
+        </div>
+        <div class="form-group search-container">
+          <label class="form-label" for="dest-input">Destination</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🔴</span>
+            <input type="text" class="form-input" id="dest-input" placeholder="Enter destination..." autocomplete="off">
+          </div>
+          <div id="dest-suggestions" class="suggestions-dropdown"></div>
+        </div>
+        <button class="btn-glow" id="find-btn" disabled>
+          🔍 Find Best Routes
+        </button>
+      </div>
+
+      <!-- Travel Profile -->
+      <div class="glass-card anim-left" id="card-profile" style="animation-delay: 0.08s;">
+        <div class="card-header">
+          <div class="card-icon purple">👤</div>
+          <div>
+            <div class="card-title">Travel Profile</div>
+            <div class="card-subtitle">Personalize your route</div>
+          </div>
+        </div>
+        <div class="mode-grid" id="mode-grid">
+          <button class="mode-card active" data-mode="normal" id="mode-normal">
+            <span class="mode-icon">👤</span>
+            <span class="mode-label">Normal</span>
+          </button>
+          <button class="mode-card" data-mode="asthma" id="mode-asthma">
+            <span class="mode-icon">🫁</span>
+            <span class="mode-label">Asthma</span>
+          </button>
+          <button class="mode-card" data-mode="elderly" id="mode-elderly">
+            <span class="mode-icon">👴</span>
+            <span class="mode-label">Elderly</span>
+          </button>
+          <button class="mode-card" data-mode="cyclist" id="mode-cyclist">
+            <span class="mode-icon">🚴</span>
+            <span class="mode-label">Cyclist</span>
+          </button>
+        </div>
+        <div id="mode-desc" style="font-size:0.68rem;color:var(--text-muted);margin-top:10px;text-align:center;font-weight:500;">
+          Standard routing with balanced priorities
+        </div>
+      </div>
+
+      <!-- AI Insights -->
+      <div class="glass-card anim-left" id="card-insights" style="animation-delay: 0.16s;">
+        <div class="card-header">
+          <div class="card-icon orange">🤖</div>
+          <div>
+            <div class="card-title">AI Insights</div>
+            <div class="card-subtitle">Intelligent analysis</div>
+          </div>
+        </div>
+        <div id="insights-content">
+          <div class="empty-state">
+            <div class="empty-icon">🧠</div>
+            <div class="empty-text">Route data will appear here after you find routes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AQI Forecast -->
+      <div class="glass-card anim-left" id="card-aqi" style="animation-delay: 0.24s;">
+        <div class="card-header">
+          <div class="card-icon blue">🌤️</div>
+          <div>
+            <div class="card-title">AQI Forecast</div>
+            <div class="card-subtitle">AI pollution prediction</div>
+          </div>
+        </div>
+        <div class="toggle-bar" id="aqi-toggle">
+          <button class="toggle-btn active" data-view="current" id="t-current">Current</button>
+          <button class="toggle-btn" data-view="predicted" id="t-predicted">Predicted</button>
+        </div>
+        <div id="aqi-display">
+          <div class="empty-state" style="padding:16px 8px;">
+            <div class="empty-icon">🌤️</div>
+            <div class="empty-text">Select a route to see AQI predictions</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health Advisory -->
+      <div class="glass-card anim-left" id="card-advisory" style="animation-delay: 0.32s; display:none;">
+        <div class="card-header">
+          <div class="card-icon blue">🏥</div>
+          <div>
+            <div class="card-title">Health Advisory</div>
+            <div class="card-subtitle">Based on your profile</div>
+          </div>
+        </div>
+        <div id="advisory-content"></div>
+      </div>
+
+    </aside>
+
+    <!-- ====== MAP AREA ====== -->
+    <section class="map-area" id="map-area">
+      <div id="map"></div>
+
+      <!-- Legend -->
+      <div class="map-legend" id="map-legend">
+        <div class="map-legend-title">Route Legend</div>
+        <div class="legend-item">
+          <div class="legend-line" style="background:var(--accent-red);"></div>
+          <span>Fastest Route</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="background:var(--accent-green);"></div>
+          <span>Eco-Friendly Route</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent-orange);"></div>
+          <span>High Pollution Zone</span>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">AI is computing optimal routes...</div>
+      </div>
+
+      <!-- Dashboard Panel -->
+      <div class="dashboard-panel" id="dash-panel">
+        <button class="dash-toggle" id="dash-toggle">
+          📊 Dashboard <span id="dash-arrow">▲</span>
+        </button>
+        <div id="dash-content">
+          <div class="stats-row stagger" id="stats-row" style="display:none;"></div>
+          <div class="route-comparison" id="route-comparison" style="display:none;"></div>
+          <div class="savings-banner" id="savings-banner" style="display:none;"></div>
+          <div class="chart-card" id="chart-card" style="display:none;">
+            <div class="chart-header">📈 AQI Prediction Timeline (Next 30 min)</div>
+            <div class="chart-wrapper"><canvas id="aqi-chart"></canvas></div>
+          </div>
+          <div class="chart-card" id="compare-chart-card" style="display:none;">
+            <div class="chart-header">📊 Route Comparison</div>
+            <div class="chart-wrapper"><canvas id="compare-chart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toast-icon"></span>
+    <span id="toast-msg"></span>
+  </div>
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <!-- App Modules -->
+  <script src="js/particles.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
