@@ -680,6 +680,68 @@ body {
   box-shadow: 0 0 20px rgba(0,232,143,0.25);
 }
 
+/* ====== VEHICLE TOGGLE ====== */
+.vehicle-toggle {
+  display: flex; gap: 8px;
+  background: rgba(12,18,32,0.6);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+}
+.v-btn {
+  flex: 1; padding: 6px 0;
+  background: transparent;
+  color: var(--text-muted);
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; transition: all 0.3s;
+}
+.v-btn.active {
+  background: var(--surface-glass);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ====== MODAL ====== */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-card {
+  background: rgba(12,18,32,0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  width: 90%; max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  animation: slideFadeIn 0.3s ease;
+}
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-glass);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-header h3 { margin: 0; font-size: 1.1rem; color: var(--text-primary); }
+.close-btn { 
+  background: transparent; border: none; color: var(--text-muted); 
+  font-size: 1.5rem; cursor: pointer; transition: color 0.2s;
+}
+.close-btn:hover { color: #ff4757; }
+.modal-body { padding: 20px; }
+.form-select {
+  width: 100%; padding: 10px 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.85rem; font-family: 'Inter', sans-serif;
+  margin-bottom: 15px; outline: none;
+}
+.form-select option { background: #0c1220; }
+
 /* ====== DASHBOARD OVERLAY ====== */
 .dashboard-panel {
   position: absolute;

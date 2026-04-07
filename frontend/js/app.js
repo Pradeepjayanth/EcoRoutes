@@ -9,9 +9,11 @@ const App = {
     source: null, // {name, lat, lng}
     dest: null,
     userMode: 'normal',
+    vehicleType: 'car',
     routeData: null,
     loading: false,
     dashOpen: false,
+    reportCoords: null,
   },
 
   async init() {
@@ -26,9 +28,29 @@ const App = {
     
     // Start heatmap
     this.startHeatmapUpdates();
+    this.loadInitialReports();
 
     console.log('✅ Application ready');
     Utils.showToast('Search any location in India to get started!', 'success');
+  },
+
+  async loadInitialReports() {
+    try {
+      const res = await Utils.get('/api/reports');
+      if (res.success && res.data) {
+        res.data.forEach(payload => {
+          L.marker([payload.lat, payload.lng], {
+            title: `Traffic: ${payload.traffic}, Cond: ${payload.condition}`
+          }).addTo(MapModule.map).bindPopup(`
+            <b>⚠️ Crowd Report</b><br>
+            Traffic: ${payload.traffic}<br>
+            Roads: ${payload.condition}
+          `);
+        });
+      }
+    } catch (e) {
+      console.error("Failed to load reports", e);
+    }
   },
 
   async startHeatmapUpdates() {
@@ -133,11 +155,81 @@ const App = {
       e.target.classList.toggle('active', isVisible);
     });
 
+    // Vehicle toggle
+    document.querySelectorAll('.v-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.state.vehicleType = btn.dataset.v;
+        if (this.state.routeData) this.findRoutes();
+      });
+    });
+
+    // Report Condition Modal
+    const reportModal = document.getElementById('report-modal');
+    document.getElementById('report-btn').addEventListener('click', () => {
+      const center = MapModule.map.getCenter();
+      this.state.reportCoords = center;
+      document.getElementById('report-loc').value = `${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}`;
+      reportModal.style.display = 'flex';
+    });
+
+    document.getElementById('close-report').addEventListener('click', () => {
+      reportModal.style.display = 'none';
+      MapModule.map.off('click', this.handleMapClickForReport);
+    });
+
+    // Optional: pick location from map
+    document.getElementById('report-loc').addEventListener('focus', () => {
+      Utils.showToast("Click on map to select location", "info");
+      MapModule.map.once('click', (e) => {
+        this.state.reportCoords = e.latlng;
+        document.getElementById('report-loc').value = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+      });
+    });
+
+    document.getElementById('submit-report').addEventListener('click', async () => {
+      const btn = document.getElementById('submit-report');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      const payload = {
+        lat: this.state.reportCoords.lat,
+        lng: this.state.reportCoords.lng,
+        traffic: document.getElementById('report-traffic').value,
+        condition: document.getElementById('report-cond').value,
+        notes: ''
+      };
+
+      try {
+        const res = await Utils.post('/report_data', payload);
+        if (res.success) {
+          Utils.showToast('Report submitted! Thank you.', 'success');
+          reportModal.style.display = 'none';
+          // Place marker
+          L.marker([payload.lat, payload.lng], {
+            title: `Traffic: ${payload.traffic}, Cond: ${payload.condition}`
+          }).addTo(MapModule.map).bindPopup(`
+            <b>⚠️ Crowd Report</b><br>
+            Traffic: ${payload.traffic}<br>
+            Roads: ${payload.condition}
+          `);
+        }
+      } catch (e) {
+        Utils.showToast('Failed to submit report', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Report';
+      }
+    });
+
     // Enter key
     document.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !this.state.loading) {
         const btn = document.getElementById('find-btn');
-        if (!btn.disabled) this.findRoutes();
+        if (!btn.disabled && !document.getElementById('report-modal').style.display.includes('flex')) {
+          this.findRoutes();
+        }
       }
     });
   },
@@ -189,6 +281,7 @@ const App = {
         source_name: source.name,
         dest_name: dest.name,
         user_type: userMode,
+        vehicle_type: this.state.vehicleType
       });
 
       this.state.routeData = data;

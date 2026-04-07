@@ -13,7 +13,7 @@ from datetime import datetime
 import os
 
 from services.prediction import predict_aqi, ZONE_BASE_AQI
-from services.routing import find_routes, get_locations
+from services.routing import find_routes, get_locations, CROWD_REPORTS
 from services.personalization import get_health_advisory, get_user_profiles
 from segmentation import analyze_road_image
 
@@ -40,10 +40,19 @@ class RouteRequest(BaseModel):
     source_name: Optional[str] = "Source"
     dest_name: Optional[str] = "Destination"
     user_type: Optional[str] = "normal"
+    vehicle_type: Optional[str] = "car"
 
 class AQIRequest(BaseModel):
     zone: str
     minutes_ahead: Optional[int] = 20
+
+class ReportDataRequest(BaseModel):
+    lat: float
+    lng: float
+    aqi: Optional[int] = None
+    traffic: str
+    condition: str
+    notes: Optional[str] = ""
 
 # ——— API Endpoints ———
 
@@ -53,7 +62,7 @@ async def predict_route(req: RouteRequest):
     result = find_routes(
         req.source_coords, req.dest_coords, 
         req.source_name, req.dest_name, 
-        req.user_type
+        req.user_type, req.vehicle_type
     )
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -65,6 +74,26 @@ async def predict_route(req: RouteRequest):
         "healthAdvisory": advisory,
         "timestamp": datetime.now().isoformat(),
     }
+
+@app.post("/report_data")
+async def report_data(req: ReportDataRequest):
+    """Receive crowd-sourced data and update memory."""
+    report = {
+        "lat": req.lat,
+        "lng": req.lng,
+        "aqi": req.aqi,
+        "traffic": req.traffic,
+        "condition": req.condition,
+        "notes": req.notes,
+        "timestamp": datetime.now().isoformat()
+    }
+    CROWD_REPORTS.append(report)
+    return {"success": True, "message": "Report submitted successfully."}
+
+@app.get("/api/reports")
+async def get_reports():
+    """Returns all crowd-sourced reports."""
+    return {"success": True, "data": CROWD_REPORTS}
 
 @app.post("/get-routes")
 async def get_routes_alt(req: RouteRequest):

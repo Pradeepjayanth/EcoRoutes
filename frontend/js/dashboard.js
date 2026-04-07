@@ -30,20 +30,20 @@ const Dashboard = {
     const { fastestRoute: fast, ecoRoute: eco, comparison: cmp } = data;
     el.innerHTML = `
       <div class="stat-card green anim-scale">
-        <div class="stat-value green" id="sv-saved">${cmp.pollutionSavedValue}</div>
-        <div class="stat-label">% Pollution Saved</div>
+        <div class="stat-value green" id="sv-saved">${cmp.pollutionSavedValue}%</div>
+        <div class="stat-label">Pollution Saved</div>
       </div>
       <div class="stat-card blue anim-scale">
-        <div class="stat-value cyan">${eco.totalDistance}</div>
-        <div class="stat-label">Eco Distance (km)</div>
+        <div class="stat-value cyan">₹${eco.fuelCost}</div>
+        <div class="stat-label">Eco Fuel Cost</div>
       </div>
       <div class="stat-card orange anim-scale">
         <div class="stat-value blue">${eco.estimatedTime}</div>
         <div class="stat-label">Est. Time (min)</div>
       </div>
       <div class="stat-card purple anim-scale">
-        <div class="stat-value orange">${eco.avgAQI}</div>
-        <div class="stat-label">Avg AQI (Eco)</div>
+        <div class="stat-value orange">${Math.round(eco.co2Emissions/1000)}</div>
+        <div class="stat-label">CO₂ (kg)</div>
       </div>`;
     el.style.display = 'grid';
 
@@ -88,9 +88,10 @@ const Dashboard = {
         <div class="route-meta">
           ${this._metaRow('Distance', `${fast.totalDistance} km`)}
           ${this._metaRow('Est. Time', `${fast.estimatedTime} min`)}
+          ${this._metaRow('Fuel Cost', `⛽ ₹${fast.fuelCost}`)}
+          ${this._metaRow('CO₂ Emission', `🌍 ${(fast.co2Emissions/1000).toFixed(1)} kg`)}
           ${this._metaRow('Avg AQI', `<span style="color:${Utils.getAQIColor(fast.avgAQI)}">${fast.avgAQI}</span>`)}
           ${this._metaRow('Max AQI', `<span style="color:${Utils.getAQIColor(fast.maxAQI)}">${fast.maxAQI}</span>`)}
-          ${this._metaRow('Stops', fast.path.length)}
         </div>
         ${this._segBar(fast.segments)}
         ${this._routePath(fast, '#ff4757')}
@@ -102,9 +103,10 @@ const Dashboard = {
         <div class="route-meta">
           ${this._metaRow('Distance', `${eco.totalDistance} km`)}
           ${this._metaRow('Est. Time', `${eco.estimatedTime} min`)}
+          ${this._metaRow('Fuel Cost', `⛽ ₹${eco.fuelCost}`)}
+          ${this._metaRow('CO₂ Emission', `🌍 ${(eco.co2Emissions/1000).toFixed(1)} kg`)}
           ${this._metaRow('Avg AQI', `<span style="color:${Utils.getAQIColor(eco.avgAQI)}">${eco.avgAQI}</span>`)}
           ${this._metaRow('Max AQI', `<span style="color:${Utils.getAQIColor(eco.maxAQI)}">${eco.maxAQI}</span>`)}
-          ${this._metaRow('Stops', eco.path.length)}
         </div>
         ${this._segBar(eco.segments)}
         ${this._routePath(eco, '#00e88f')}
@@ -135,14 +137,30 @@ const Dashboard = {
     }).join('')}</div>`;
   },
 
-  // ——— Savings Banner ———
+  // ——— Eco Impact Panel ———
   renderSavings(data) {
     const el = document.getElementById('savings-banner');
     const { comparison: cmp } = data;
+    
+    // Eco Impact Panel Content
     el.innerHTML = `
-      <div class="savings-big">-${cmp.pollutionSaved}</div>
-      <div class="savings-label">Pollution Exposure Reduction</div>
-      <div class="savings-desc">${cmp.recommendation}</div>`;
+      <div style="font-family:'Inter', sans-serif; display: flex; justify-content: space-around; align-items: center; padding: 12px 0;">
+        <div style="text-align:center;">
+          <div style="font-size:1.8rem; font-weight:800; color:var(--accent-green); margin-bottom:4px;">-${cmp.pollutionSaved}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:1px;">Pollution Saved</div>
+        </div>
+        <div style="width:1px; height:40px; background:var(--border-glass);"></div>
+        <div style="text-align:center;">
+          <div style="font-size:1.8rem; font-weight:800; color:#5A9EE4; margin-bottom:4px;">₹${cmp.fuelSaved > 0 ? cmp.fuelSaved : 0}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:1px;">Fuel Savings</div>
+        </div>
+        <div class="eco-desktop-only" style="width:1px; height:40px; background:var(--border-glass);"></div>
+        <div class="eco-desktop-only" style="text-align:center;">
+          <div style="font-size:1.8rem; font-weight:800; color:#FCA311; margin-bottom:4px;">${cmp.co2Saved > 0 ? cmp.co2Saved : 0}g</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:1px;">CO₂ Reduced</div>
+        </div>
+      </div>
+      <div class="savings-desc" style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">🌱 ${cmp.recommendation}</div>`;
     el.style.display = 'block';
   },
 
